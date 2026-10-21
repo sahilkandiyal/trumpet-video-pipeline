@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trumpet Interview</title>
+<style>
+  :root { --bg:#ffffff; --fg:#0f0f0f; --muted:#6b6b6b; --line:#e3e3e3; --card:#f7f7f7; --accent:#ff5a1f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f0f0f; --fg:#f4f4f4; --muted:#9a9a9a; --line:#2a2a2a; --card:#181818; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, -apple-system, Segoe UI, Arial, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; }
+  h2 { font-size:20px; margin:0 0 12px; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px; }
+  label { display:block; font-weight:600; margin-bottom:6px; }
+  .hint { color:var(--muted); font-size:14px; font-weight:400; }
+  input[type=text], textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--fg); font:inherit; }
+  textarea { resize:vertical; min-height:70px; }
+  textarea:disabled { opacity:.6; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .row > div { flex:1 1 180px; }
+  .field { margin-bottom:16px; }
+  .check { display:flex; align-items:center; gap:8px; font-weight:400; margin-bottom:6px; }
+  button { font:inherit; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .primary { width:100%; padding:14px; border:0; border-radius:12px; background:var(--accent); color:#fff; font-weight:600; font-size:17px; }
+  .ghost { padding:10px 16px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--fg); }
+  .modes { display:flex; gap:12px; }
+  .mode { flex:1; border:2px solid var(--line); border-radius:12px; padding:14px; cursor:pointer; background:var(--bg); text-align:left; color:var(--fg); }
+  .mode.on { border-color:var(--fg); }
+  .mode b { display:block; }
+  .elephant { display:flex; gap:20px; align-items:center; }
+  .elephant img { width:130px; height:130px; flex:none; }
+  .bubble { position:relative; flex:1; background:var(--bg); border:1px solid var(--line); border-radius:18px; padding:14px 18px; }
+  .bubble::before { content:""; position:absolute; left:-10px; top:42px; width:18px; height:18px; background:var(--bg); border-left:1px solid var(--line); border-bottom:1px solid var(--line); transform:rotate(45deg); }
+  @keyframes talk { 0%,100% { transform:translateY(0) rotate(0); } 50% { transform:translateY(-6px) rotate(-2deg); } }
+  .talk { animation:talk .6s ease-in-out infinite; }
+  .q { font-size:24px; font-weight:700; line-height:1.25; }
+  .dots { display:flex; gap:6px; margin-bottom:14px; }
+  .dots i { height:6px; flex:1; border-radius:99px; background:var(--line); }
+  .dots i.done { background:var(--fg); }
+  .stage { position:relative; margin-top:16px; background:#000; border-radius:12px; overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; }
+  .stage video, .stage canvas { width:100%; height:100%; object-fit:cover; }
+  .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:96px; font-weight:800; color:#fff; background:rgba(0,0,0,.45); }
+  .rec { position:absolute; top:12px; left:12px; background:rgba(0,0,0,.6); color:#fff; padding:4px 10px; border-radius:99px; font-size:14px; }
+  .rec b { color:#ff4040; }
+  .bar { height:8px; background:var(--line); border-radius:99px; overflow:hidden; margin:10px 0; }
+  .bar > div { height:100%; width:0; background:var(--accent); transition:width .3s; }
+  .controls { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .controls .primary { width:auto; flex:1; min-width:160px; }
+  .err { color:#d33; font-weight:600; }
+  .warn { color:#b86a00; font-size:14px; margin-top:6px; }
+  video.player, audio.player { width:100%; border-radius:12px; background:#000; }
+  audio.player { background:transparent; }
+  .turn { border-top:1px solid var(--line); padding-top:16px; margin-top:16px; }
+  .turn:first-child { border-top:0; padding-top:0; margin-top:0; }
+  a.dl { display:inline-block; margin-top:10px; font-weight:600; color:var(--fg); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Interview with Trumpet</h1>
+  <p class="sub">Trumpet the elephant asks you three questions. You answer on video or with your voice, and we turn it into a finished interview video.</p>
+
+  <div class="card err" id="fatal" hidden></div>
+
+  <!-- 1. Intro -->
+  <section id="intro">
+    <div class="card">
+      <div class="elephant">
+        <img src="/assets/elephant.svg" alt="Trumpet the elephant">
+        <div>
+          <h2>Hi, I'm Trumpet.</h2>
+          <div>I'll ask you 3 questions, one at a time. Each answer can be up to 90 seconds, and you can re-record if you don't like a take.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="field"><label for="founderName">Your name</label><input type="text" id="founderName" value="Demo Founder"></div>
+        <div class="field"><label for="productName">Your product</label><input type="text" id="productName" value="Example Product"></div>
+      </div>
+      <label>How do you want to answer?</label>
+      <div class="modes">
+        <button type="button" class="mode on" data-mode="video"><b>Video</b><span class="hint">Camera + microphone (recommended)</span></button>
+        <button type="button" class="mode" data-mode="audio"><b>Voice</b><span class="hint">Microphone only</span></button>
+      </div>
+      <p class="hint">Your browser will ask for permission after you press Start. Nothing is recorded until you press Record.</p>
+    </div>
+    <button class="primary" id="start">Start the interview</button>
+  </section>
+
+  <!-- 2. Question + recorder -->
+  <section id="interview" hidden>
+    <div class="card">
+      <div class="dots" id="dots"></div>
+      <div class="elephant">
+        <img id="ele" src="/assets/elephant.svg" alt="Trumpet the elephant">
+        <div class="bubble">
+          <div class="hint" id="qlabel"></div>
+          <div class="q" id="qtext"></div>
+        </div>
+      </div>
+      <div class="hint" id="qstatus" style="margin-top:10px"></div>
+      <div class="controls" style="margin-top:8px">
+        <button type="button" class="ghost" id="replay">▶ Replay question</button>
+        <button type="button" class="ghost" id="switchMode"></button>
+      </div>
+      <div class="warn" id="camMsg"></div>
+
+      <div class="stage" id="stage">
+        <video id="live" muted playsinline hidden></video>
+        <canvas id="wave" width="1280" height="720" hidden></canvas>
+        <video id="preview" class="player" controls playsinline hidden></video>
+        <div class="overlay" id="countdown" hidden></div>
+        <div class="rec" id="recBadge" hidden><b>●</b> <span id="timer">0:00</span> / <span id="max"></span></div>
+      </div>
+      <audio id="previewAudio" class="player" controls hidden style="margin-top:12px"></audio>
+      <div class="bar" id="limitBar" hidden><div id="limitFill"></div></div>
+      <div class="warn" id="recMsg"></div>
+
+      <div class="controls">
+        <button class="primary" id="btnRecord">● Record my answer</button>
+        <button class="primary" id="btnStop" hidden>■ Stop</button>
+        <button class="primary" id="btnUse" hidden>Use this take</button>
+        <button class="ghost" id="btnRedo" hidden>Re-record</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Review -->
+  <section id="review" hidden>
+    <div class="card">
+      <h2>Review your answers</h2>
+      <p class="hint">Check each answer and fix any typos in the text. The text becomes the captions.</p>
+      <div id="turns"></div>
+    </div>
+    <div class="card">
+      <div class="hint" style="margin-bottom:8px" id="signoffNote"></div>
+      <label class="check"><input type="checkbox" id="showCaptions" checked> Show captions</label>
+      <label class="check"><input type="checkbox" id="showIntro" checked> Show intro card</label>
+    </div>
+    <div class="err" id="reviewErr" style="margin-bottom:10px"></div>
+    <button class="primary" id="create" disabled>Create my video</button>
+  </section>
+
+  <!-- 4. Progress / result -->
+  <section id="progress" hidden>
+    <div class="card">
+      <div id="msg">Starting...</div>
+      <div class="bar"><div id="fill"></div></div>
+      <div class="hint">Rendering takes about 1-3 minutes. Keep this tab open.</div>
+    </div>
+  </section>
+
+  <section id="result" hidden>
+    <div class="card">
+      <h2>Your interview is ready</h2>
+      <video id="player" class="player" controls></video>
+      <a class="dl" id="download" href="#">Download MP4</a>
+      <div style="margin-top:14px"><button class="ghost" onclick="location.reload()">Start a new interview</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const show = (id, on = true) => { $(id).hidden = !on; };
+const rand = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const fmt = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+let cfg, stream = null, mode = "video";
+const session = rand();
+let current = 0, returnToReview = false;
+const answers = [];       // per question: {blob, kind, blobUrl, upload, result, error, text}
+const takes = [];         // valid takes used per question
+let ttsP = [], questionAudio = null;
+
+// ---- Intro ------------------------------------------------------------------
+document.querySelectorAll(".mode").forEach((b) => b.onclick = () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll(".mode").forEach((x) => x.classList.toggle("on", x === b));
+});
+
+function fatal(text) { $("fatal").textContent = text; show("fatal"); }
+
+$("start").onclick = async () => {
+  show("fatal", false);
+  if (!window.isSecureContext || !navigator.mediaDevices) {
+    return fatal("Your browser blocks camera and microphone on this address. Open the tool at http://localhost:4000 on the computer that runs it.");
+  }
+  $("start").disabled = true;
+  try {
+    cfg = await (await fetch("/api/config")).json();
+    await openStream();
+    $("max").textContent = fmt(cfg.maxAnswerSeconds);
+    prefetchSpeech();
+    show("intro", false); show("interview");
+    askQuestion(0);
+  } catch (e) {
+    fatal(e.message);
+    $("start").disabled = false;
+  }
+};
+
+let camError = "";
+
+function camHint(e) {
+  const n = e && e.name;
+  if (n === "NotAllowedError" || n === "SecurityError") return "Camera permission is blocked. Click the camera icon in the address bar, choose Allow, then press the button below. (Also check Windows Settings > Privacy > Camera.)";
+  if (n === "NotReadableError" || n === "AbortError") return "The camera is busy. Close other apps or tabs that use it (Teams, Zoom, Meet), then press the button below.";
+  if (n === "NotFoundError" || n === "OverconstrainedError") return "No camera was found on this computer.";
+  return `The camera could not start (${n || "unknown error"}).`;
+}
+
+async function openStream() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  camError = "";
+  const audio = { echoCancellation: true, noiseSuppression: true };
+  if (mode === "video") {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio });
+      return;
+    } catch (e) {
+      // PRD: camera denied -> voice mode, but tell the user why instead of failing silently.
+      camError = camHint(e);
+      mode = "audio";
+    }
+  }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio });
+  } catch (e) {
+    throw new Error("We couldn't use your microphone. Please allow microphone access in your browser and try again.");
+  }
+}
+
+function updateModeUi() {
+  $("camMsg").textContent = camError ? camError + " Meanwhile you are recording voice only." : "";
+  $("switchMode").textContent = mode === "video" ? "Switch to voice only" : (camError ? "Try camera again" : "Switch to camera");
+}
+
+$("switchMode").onclick = async () => {
+  stopMonitor();
+  mode = mode === "video" ? "audio" : "video";
+  try { await openStream(); } catch (e) { return fatal(e.message); }
+  updateModeUi();
+  setRec("idle");
+  startMonitor();
+};
+
+// ---- Trumpet's voice ---------------------------------------------------------
+function fetchSpeech(text) {
+  return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) })
+    .then((r) => r.json()).then((d) => { if (!d.url) throw new Error(d.error); return d.url; });
+}
+function prefetchSpeech() {
+  // One at a time, so question 1 is ready as soon as possible.
+  const texts = cfg.questions.concat([cfg.signOff]);
+  ttsP = [];
+  texts.forEach((t, i) => { ttsP[i] = (ttsP[i - 1] || Promise.resolve()).catch(() => {}).then(() => fetchSpeech(t)); });
+  ttsP.forEach((p) => p.catch(() => {}));
+}
+
+async function speak(i) {
+  stopSpeaking();
+  $("qstatus").textContent = "Trumpet is warming up his trunk...";
+  try {
+    const url = await ttsP[i];
+    if (i !== current) return;
+    questionAudio = new Audio(url);
+    questionAudio.onended = () => {
+      $("ele").classList.remove("talk");
+      $("qstatus").textContent = "Your turn. Press Record when you're ready.";
+    };
+    await questionAudio.play();
+    $("ele").classList.add("talk");
+    $("qstatus").textContent = "Trumpet is asking...";
+  } catch (e) {
+    // PRD failure mode: voice down -> text-only question, the interview continues.
+    $("ele").classList.remove("talk");
+    $("qstatus").textContent = "(Voice unavailable, please read the question.) Press Record when you're ready.";
+  }
+}
+function stopSpeaking() {
+  $("ele").classList.remove("talk");
+  if (questionAudio) { questionAudio.pause(); questionAudio = null; }
+}
+$("replay").onclick = () => speak(current);
+
+// ---- Question screen ---------------------------------------------------------
+function askQuestion(i, autoplay = true) {
+  current = i;
+  $("dots").innerHTML = cfg.questions.map((_, k) => `<i class="${k < i ? "done" : ""}"></i>`).join("");
+  $("qlabel").textContent = `Question ${i + 1} of ${cfg.questions.length}`;
+  $("qtext").textContent = cfg.questions[i];
+  $("recMsg").textContent = "";
+  setRec("idle");
+  // The camera is released after a render; reopen it if the user came back to re-record.
+  if (stream.getTracks().some((t) => t.readyState === "ended")) {
+    openStream().then(() => { updateModeUi(); setRec("idle"); startMonitor(); }).catch((e) => fatal(e.message));
+  } else {
+    startMonitor();
+  }
+  updateModeUi();
+  if (autoplay) speak(i); else $("qstatus").textContent = "";
+}
+
+let monitorRaf = 0, audioCtx = null, analyser = null;
+function startMonitor() {
+  stopMonitor();
+  if (mode === "video") {
+    const v = $("live"); v.srcObject = stream; v.play().catch(() => {});
+    return;
+  }
+  audioCtx = audioCtx || new AudioContext();
+  analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+  audioCtx.createMediaStreamSource(stream).connect(analyser);
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  const c = $("wave").getContext("2d");
+  const draw = () => {
+    analyser.getByteFrequencyData(data);
+    c.fillStyle = "#0f0f0f"; c.fillRect(0, 0, 1280, 720);
+    const n = 40, w = 1280 / n;
+    for (let k = 0; k < n; k++) {
+      const h = 20 + (data[k] / 255) * 520;
+      c.fillStyle = "#ff5a1f";
+      c.fillRect(k * w + 6, 360 - h / 2, w - 12, h);
+    }
+    monitorRaf = requestAnimationFrame(draw);
+  };
+  draw();
+}
+function stopMonitor() { cancelAnimationFrame(monitorRaf); }
+
+function setRec(state) {
+  // idle | countdown | recording | review
+  const live = state !== "review";
+  show("live", live && mode === "video");
+  show("wave", live && mode === "audio");
+  show("preview", state === "review" && mode === "video");
+  show("previewAudio", state === "review" && mode === "audio");
+  show("countdown", state === "countdown");
+  show("recBadge", state === "recording");
+  show("limitBar", state === "recording");
+  show("btnRecord", state === "idle");
+  show("btnStop", state === "recording");
+  show("btnUse", state === "review");
+  show("btnRedo", state === "review");
+  $("replay").disabled = state === "countdown" || state === "recording";
+  $("switchMode").disabled = state !== "idle";
+  if (state === "review") {
+    const left = cfg.maxTakes - (takes[current] || 0);
+    $("btnRedo").disabled = left <= 0;
+    $("btnRedo").textContent = left > 0 ? `Re-record (${left} left)` : "No re-records left";
+  }
+}
+
+// ---- Recording ---------------------------------------------------------------
+function pickMime(kind) {
+  const options = kind === "video"
+    ? ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"]
+    : ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+  return options.find((m) => MediaRecorder.isTypeSupported(m)) || "";
+}
+
+let recorder = null, chunks = [], timerId = 0, startedAt = 0, pending = null;
+
+$("btnRecord").onclick = async () => {
+  stopSpeaking();
+  $("recMsg").textContent = "";
+  setRec("countdown");
+  for (const n of [3, 2, 1]) {
+    $("countdown").textContent = n;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  const mime = pickMime(mode);
+  chunks = [];
+  recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.onstop = onRecorded;
+  recorder.start(1000);
+  startedAt = Date.now();
+  setRec("recording");
+  timerId = setInterval(() => {
+    const s = (Date.now() - startedAt) / 1000;
+    $("timer").textContent = fmt(s);
+    $("limitFill").style.width = Math.min(100, (s / cfg.maxAnswerSeconds) * 100) + "%";
+    if (s >= cfg.maxAnswerSeconds) stopRecording(); // hard stop
+  }, 200);
+};
+
+function stopRecording() {
+  clearInterval(timerId);
+  if (recorder && recorder.state !== "inactive") recorder.stop();
+}
+$("btnStop").onclick = stopRecording;
+
+function onRecorded() {
+  const seconds = (Date.now() - startedAt) / 1000;
+  const blob = new Blob(chunks, { type: recorder.mimeType || (mode === "video" ? "video/webm" : "audio/webm") });
+  if (seconds < cfg.minAnswerSeconds) {
+    $("recMsg").textContent = `That was a bit short (${seconds.toFixed(1)}s). Please give at least ${cfg.minAnswerSeconds} seconds.`;
+    return setRec("idle");
+  }
+  takes[current] = (takes[current] || 0) + 1;
+  if (pending) URL.revokeObjectURL(pending.blobUrl);
+  pending = { blob, kind: mode, blobUrl: URL.createObjectURL(blob), seconds };
+  stopMonitor();
+  const el = mode === "video" ? $("preview") : $("previewAudio");
+  el.src = pending.blobUrl;
+  setRec("review");
+}
+
+$("btnRedo").onclick = () => { if (pending) { URL.revokeObjectURL(pending.blobUrl); pending = null; } askQuestion(current, false); };
+
+$("btnUse").onclick = () => {
+  const i = current, a = pending;
+  pending = null;
+  if (answers[i]) URL.revokeObjectURL(answers[i].blobUrl);
+  answers[i] = a;
+  // Upload + convert + transcribe in the background while the interview carries on.
+  a.upload = fetch(`/api/answers?session=${session}&q=${i + 1}&kind=${a.kind}`, {
+    method: "POST", headers: { "Content-Type": a.blob.type || "application/octet-stream" }, body: a.blob,
+  }).then(async (r) => {
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    a.result = d; a.text = d.transcript || "";
+  }).catch((e) => { a.error = e.message; });
+
+  if (returnToReview || i + 1 >= cfg.questions.length) { returnToReview = false; showReview(); }
+  else askQuestion(i + 1);
+};
+
+// ---- Review ------------------------------------------------------------------
+let captionsTouched = false;
+$("showCaptions").onchange = () => { captionsTouched = true; };
+
+function showReview() {
+  stopMonitor(); stopSpeaking();
+  show("interview", false); show("review");
+  $("signoffNote").textContent = `Trumpet will close with: "${cfg.signOff}"`;
+  renderReview();
+  Promise.all(answers.map((a) => a.upload)).then(renderReview);
+}
+
+function renderReview() {
+  const wrap = $("turns");
+  wrap.innerHTML = "";
+  let ready = true, anyEmpty = false;
+  answers.forEach((a, i) => {
+    const done = !!(a.result || a.error);
+    if (!a.result) ready = false;
+    const div = document.createElement("div");
+    div.className = "turn";
+    const media = a.kind === "video" ? "video" : "audio";
+    const emptyWarn = a.result && !a.text.trim();
+    if (emptyWarn) anyEmpty = true;
+    div.innerHTML = `
+      <div class="hint">Question ${i + 1}</div>
+      <div style="font-weight:700;margin-bottom:8px"></div>
+      <${media} class="player" controls playsinline></${media}>
+      <textarea style="margin-top:8px" ${a.result ? "" : "disabled"} placeholder="${done ? "" : "Transcribing your answer..."}"></textarea>
+      ${a.error ? `<div class="err">${a.error}</div>` : ""}
+      ${a.result && a.result.transcriptError ? `<div class="warn">Automatic transcription failed (${a.result.transcriptError}). You can type the text yourself.</div>` : ""}
+      ${emptyWarn && !(a.result.transcriptError) ? `<div class="warn">Trumpet couldn't hear any words in this answer. You can re-record it, or type what you said.</div>` : ""}
+      <div class="controls"><button type="button" class="ghost redo">Re-record this answer (${cfg.maxTakes - (takes[i] || 0)} left)</button></div>`;
+    div.children[1].textContent = cfg.questions[i];
+    div.querySelector(media).src = (a.result && a.result.url) || a.blobUrl;
+    const ta = div.querySelector("textarea");
+    ta.value = a.text || "";
+    ta.oninput = () => { a.text = ta.value; };
+    const redo = div.querySelector(".redo");
+    redo.disabled = (takes[i] || 0) >= cfg.maxTakes;
+    redo.onclick = () => { returnToReview = true; show("review", false); show("interview"); askQuestion(i, false); };
+    wrap.appendChild(div);
+  });
+  $("create").disabled = !ready;
+  // Default captions on only when every answer has text, until the user chooses.
+  if (!captionsTouched) $("showCaptions").checked = ready && !anyEmpty;
+  $("reviewErr").textContent = answers.some((a) => a.error) ? "One answer failed to upload. Please re-record it." : "";
+}
+
+// ---- Create the video --------------------------------------------------------
+$("create").onclick = async () => {
+  $("reviewErr").textContent = "";
+  $("create").disabled = true;
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        founderName: $("founderName").value, productName: $("productName").value,
+        showCaptions: $("showCaptions").checked, showIntro: $("showIntro").checked,
+        turns: answers.map((a, i) => ({ question: cfg.questions[i], mediaPath: a.result.mediaPath, kind: a.kind, transcript: a.text })),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    show("review", false); show("progress");
+    poll(data.id);
+  } catch (e) {
+    $("reviewErr").textContent = e.message;
+    $("create").disabled = false;
+  }
+};
+
+async function poll(id) {
+  try {
+    const job = await (await fetch("/api/jobs/" + id)).json();
+    $("msg").textContent = job.message;
+    $("fill").style.width = job.progress + "%";
+    if (job.status === "running") return setTimeout(() => poll(id), 1000);
+    if (job.status === "error") {
+      show("progress", false); show("review");
+      $("create").disabled = false;
+      return ($("reviewErr").textContent = "Something went wrong: " + job.message);
+    }
+    show("progress", false); show("result");
+    $("player").src = job.outputUrl;
+    $("download").href = job.outputUrl + "?download";
+  } catch {
+    setTimeout(() => poll(id), 2000);
+  }
+}
+</script>
+</body>
+</html>

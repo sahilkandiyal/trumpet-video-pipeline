@@ -1,0 +1,28 @@
+{
+  "name": "trumpet-video-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local prototype: founder interview + AI elephant interviewer rendered to MP4 with Remotion",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "generate:voice": "tsx scripts/generate-voice.ts",
+    "validate": "tsx scripts/validate.ts",
+    "render": "tsx scripts/render-video.ts",
+    "ui": "tsx scripts/ui-server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.536",
+    "@remotion/media-utils": "4.0.536",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.536",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0"
+  }
+}

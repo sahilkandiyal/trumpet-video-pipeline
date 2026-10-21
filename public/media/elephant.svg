@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Placeholder interviewer elephant holding a microphone: replace with final brand asset -->
+  <circle cx="200" cy="200" r="190" fill="#c9d3e6"/>
+  <!-- ears -->
+  <ellipse cx="108" cy="185" rx="70" ry="95" fill="#8e9bb8"/>
+  <ellipse cx="292" cy="185" rx="70" ry="95" fill="#8e9bb8"/>
+  <!-- head -->
+  <ellipse cx="200" cy="185" rx="95" ry="105" fill="#a7b4cf"/>
+  <!-- eyes, brows raised: curious interviewer -->
+  <circle cx="165" cy="160" r="9" fill="#1d2433"/>
+  <circle cx="235" cy="160" r="9" fill="#1d2433"/>
+  <circle cx="168" cy="157" r="3" fill="#fff"/>
+  <circle cx="238" cy="157" r="3" fill="#fff"/>
+  <path d="M148 133 Q165 118 182 130" stroke="#1d2433" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M218 130 Q235 118 252 133" stroke="#1d2433" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- trunk reaching toward the mic -->
+  <path d="M184 215 Q176 305 232 322 Q262 328 262 304 Q250 312 240 304 Q218 270 216 215 Z" fill="#a7b4cf" stroke="#8e9bb8" stroke-width="4" stroke-linejoin="round"/>
+  <!-- open smile under the trunk -->
+  <path d="M178 262 Q150 292 124 270" stroke="#1d2433" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- microphone: handle, then head -->
+  <rect x="255" y="262" width="16" height="80" rx="8" transform="rotate(25 263 302)" fill="#2b2f3a"/>
+  <circle cx="288" cy="238" r="27" fill="#3a3f4d"/>
+  <path d="M268 232 H308 M266 244 H310" stroke="#8a90a0" stroke-width="4"/>
+  <ellipse cx="288" cy="238" rx="27" ry="27" fill="none" stroke="#1d2433" stroke-width="4"/>
+  <!-- trunk tip wrapped around the handle -->
+  <ellipse cx="262" cy="312" rx="16" ry="12" fill="#a7b4cf" stroke="#8e9bb8" stroke-width="4"/>
+  <!-- sound arcs -->
+  <path d="M326 215 Q346 238 326 261" stroke="#1d2433" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/>
+  <path d="M342 200 Q372 238 342 276" stroke="#1d2433" stroke-width="5" fill="none" stroke-linecap="round" opacity=".3"/>
+</svg>

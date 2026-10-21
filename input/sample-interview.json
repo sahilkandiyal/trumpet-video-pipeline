@@ -1,0 +1,26 @@
+{
+  "title": "Founder Interview Demo",
+  "founderName": "Demo Founder",
+  "productName": "Example Product",
+  "turns": [
+    {
+      "question": {
+        "text": "Why did you build this?",
+        "audioPath": "public/audio/question-01.wav"
+      },
+      "answer": {
+        "kind": "video",
+        "mediaPath": "public/media/Screen Recording 2026-10-01 171143.mp4",
+        "transcript": "I got it."
+      }
+    }
+  ],
+  "signOff": {
+    "text": "That's all from me. Thank you for sharing your story with Trumpet!",
+    "audioPath": "public/audio/signoff.wav"
+  },
+  "branding": {
+    "showCaptions": true,
+    "showIntro": true
+  }
+}

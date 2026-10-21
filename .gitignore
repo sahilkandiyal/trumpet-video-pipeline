@@ -1,0 +1,16 @@
+node_modules/
+output/*
+!output/.gitkeep
+generated/*
+!generated/.gitkeep
+public/audio/*
+!public/audio/.gitkeep
+# Founder recordings may be private: never commit them by default
+public/media/*.mp4
+public/media/*.mov
+public/media/*.webm
+public/media/uploads/
+models/
+.env
+.env.local
+*.log
