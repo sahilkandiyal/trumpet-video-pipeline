@@ -14,3 +14,4 @@ models/
 .env
 .env.local
 *.log
+PRD.md
